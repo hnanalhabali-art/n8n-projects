@@ -1,0 +1,297 @@
+{
+  "name": "Email",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -640,
+        -112
+      ],
+      "id": "783035f1-46df-46b4-b7c1-df2f5799a670",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "hS8JGP7I2oq7g66W",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputText": "=Subject: {{ $json.subject }}\n\nBody: {{ $json.text }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "customer support",
+              "description": "Hi team...."
+            },
+            {
+              "category": "finance /billing",
+              "description": "Hi there..."
+            },
+            {
+              "category": "high priorty",
+              "description": "Urgent/ our main..."
+            },
+            {
+              "category": "promotion",
+              "description": "were excited to..."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        -288,
+        -144
+      ],
+      "id": "d770c63b-5c9a-4737-ac5d-43ef80ce8bdf",
+      "name": "Text Classifier"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -288,
+        192
+      ],
+      "id": "046944ee-e966-4284-91e0-3627208cb02a",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wERHIayBxWQLZAjd",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "1a0399372740fa8a",
+        "labelIds": [
+          "Label_8324070977775391172"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        -160
+      ],
+      "id": "1aa2e392-35b4-4f3a-bf89-3292d4063133",
+      "name": "Add label to message",
+      "webhookId": "31bd5e26-7ade-4d89-81bb-3689e36c7128",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "hS8JGP7I2oq7g66W",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=subject:{{ $('Gmail Trigger').item.json.headers.subject }}\n\nbody:{{ $('Gmail Trigger').item.json.text }}",
+        "options": {
+          "systemMessage": "You are Nate's AI Assistant - an expert, friendly, and professional customer support representativ...\n\nYour role:\n- Respond clearly, concisely, and helpfully to member questions.\n- Always maintain a warm and approachable tone that reflects Nate Herk's brand and community value...\n- Provide accurate information about AI Automation Society, its programs, challenges, and communit...\n- If you do *not* know the answer or the query requires Nate's direct input, politely tell the u...\n\nAlways sign off every message with:\n Nate's AI Assistant"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        528,
+        -160
+      ],
+      "id": "863c4f64-0bf8-4ba7-a16b-d0a86171cfb1",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "1a0399372740fa8a",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        -160
+      ],
+      "id": "724ed32b-1803-469c-afa8-a953aad2f88d",
+      "name": "Reply to a message",
+      "webhookId": "08d36736-260d-41ff-b88c-76992b063a69",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "hS8JGP7I2oq7g66W",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Gmail Trigger": [
+      {
+        "json": {
+          "id": "1a0399372740fa8a",
+          "threadId": "1a0399372740fa8a",
+          "labelIds": [
+            "UNREAD",
+            "CATEGORY_PERSONAL",
+            "INBOX"
+          ],
+          "sizeEstimate": 7086,
+          "headers": {
+            "delivered-to": "Delivered-To: hnanalhabali@gmail.com",
+            "received": "Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])\r\n        by mx.google.com with SMTPS id 38308e7fff4ca-3a1f9ce1d89sor655451fa.13.2026.08.25.08.39.19\r\n        for <hnanalhabali@gmail.com>\r\n        (Google Transport Security);\r\n        Tue, 25 Aug 2026 08:39:19 -0700 (PDT)",
+            "x-received": "X-Received: by 2002:a2e:a99f:0:b0:3a1:35f3:d2f2 with SMTP id\r\n 38308e7fff4ca-3a1ef5f63edmr16327181fa.12.1787672358906; Tue, 25 Aug 2026\r\n 08:39:18 -0700 (PDT)",
+            "arc-seal": "ARC-Seal: i=1; a=rsa-sha256; t=1787672359; cv=none;\r\n        d=google.com; s=arc-20260327;\r\n        b=NJeSOW8FZLXjNzNMlsh/GIiBKBWtIXlLjVEmyYglL1Xzl+roO5/VHmnY+4P5Picg9H\r\n         fgKrQCuOBeSdXXPegd1eI45MHNg+TXNe+kn7WGQXdVIwmgczQH3iJZKKVIbbtBpRFz/q\r\n         ciaCiv9q+7OPCaTpoCuuCbs+T4yYPMtUd7kYoUuxfBws6uE7X8uext3ECd4Edel7pJRP\r\n         Fmvqs3bk1O3ZoK95S7Yk9PrMTZfOrGwZekG7+T2OgvuOqyDJ7EFDSQDkDp7GxaqsTfKM\r\n         zguv+8Iij92q3DqtRqaVq+VqKc9oWA4rVYrySIPCLIIfANLArtI4LmD8D+UzDp6Yvct9\r\n         cmlQ==",
+            "arc-message-signature": "ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;\r\n        h=to:subject:message-id:date:from:mime-version:dkim-signature;\r\n        bh=pyqaJH+Guu+YAI7SJUet2ZSvwzAM7+9y6fw4OPKMRvk=;\r\n        fh=4dVX4mNPdKFz1lJM2vIqHs8ybjuab1hC9Wq51NFWSeA=;\r\n        b=r878GkW/iZENBPDdj6pRfzNC1cb7ZofvYpicWGEMCohPxwj6VdMikgjLpy63oNLjWp\r\n         NRDaI0lf2XYQC8rFzqMv4MKllWe06cXe0PmLRhaJ+JzI4tGsPz142fdO8sx8spx/uiLx\r\n         O/9EkxIBIQJJpRv9OUhWohMqhGsfFsnYzEtSPt3gBSqJOqz8jsFzrvgvmxim4G0pMBMc\r\n         YiXZm0CWGu9TlR+PgRquA9obDDph2oxhY3LyOetNljhzbujbs+WSB74z/vkEoVa5+naV\r\n         ZbkZenXcR54u0VCB5iyi//BXkJ3tNJSqw5665XLBh2mDKjmxfNQ9VgByitfLPRXptwMb\r\n         PSGg==;\r\n        dara=google.com",
+            "arc-authentication-results": "ARC-Authentication-Results: i=1; mx.google.com; arc=none",
+            "return-path": "Return-Path: <hananalhabbali2000@gmail.com>",
+            "received-spf": "Received-SPF: pass (google.com: domain of hananalhabbali2000@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;",
+            "authentication-results": "Authentication-Results: mx.google.com;\r\n       dkim=pass header.i=@gmail.com header.s=20251104 header.b=L5AxGXl5;\r\n       arc=pass (i=1);\r\n       spf=pass (google.com: domain of hananalhabbali2000@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=hananalhabbali2000@gmail.com;\r\n       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;\r\n       dara=pass header.i=@gmail.com",
+            "dkim-signature": "DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=gmail.com; s=20251104; t=1787672359; x=1788277159; dara=google.com;\r\n        h=content-type:to:subject:message-id:date:from:mime-version:from:to\r\n         :cc:subject:date:message-id:reply-to:content-type;\r\n        bh=pyqaJH+Guu+YAI7SJUet2ZSvwzAM7+9y6fw4OPKMRvk=;\r\n        b=L5AxGXl5m9OpCup5Oba/GxATfpx+m6HfYBB53k9b0tF8as6ZNPs/APoydHu6rNKFXP\r\n         d08oq+QZWCkyHA2zi/DpOwKVnN2Gl6tv50bGEsNlbRZ8gtkIGU2UGuWq0pTAknTFct/0\r\n         jFwylcR7ZJqBerVlG7kphpjFXJz9opr0knEitm6P2ptedewVO8icM6k6XhcbgzqHKOex\r\n         YL5l7qqkl0HGszoqngynEzSQr9opVbWf0fQQSfQZa/TPwRGYa1dS4XRilVob3FAdeeqX\r\n         5bC6Q04Epb88KPWpFCS4iMznx7EtG9/fuUbGUsTRkivc4QCniJ8esZcuWShnF2gQXx+Y\r\n         Fnog==",
+            "x-google-dkim-signature": "X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=1e100.net; s=20251104; t=1787672359; x=1788277159;\r\n        h=content-type:to:subject:message-id:date:from:mime-version:x-gm-gg\r\n         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to\r\n         :content-type;\r\n        bh=pyqaJH+Guu+YAI7SJUet2ZSvwzAM7+9y6fw4OPKMRvk=;\r\n        b=lvQbxlgDe0xReP/cHK/hS3RMtpoA7vytdV+qzvIyrCBC8o9doZafETaAVLs/QmC3e6\r\n         OZTkDrXIzR8eGSvxCjXzg559zOe6k4U2rtEPQd2yJCCp/mMrdYG0Il06SNt+flcHH/Ne\r\n         P0NRWV6PKBRWE8oQoTm7PBhTm2qAeFJOxaLHt7vULc4xerEUWKlVpk229YkESUqMOkbT\r\n         7w4EG6nfPDznhxb0LNv3NOGPcyQ6hEM/EtEQK6yKVIbHBIbK9gAilXf1CfreBx5UcFEd\r\n         bN1xf+JgZIGkd+2fkZQiILZ0C1puehu78oAmNL2wR0eABSALy2AKylEcfYECLZisY67i\r\n         5k2w==",
+            "x-gm-message-state": "X-Gm-Message-State: AFuF++mPgRjdHocPqeaasgb0co0PooHzxYyQ96I0u7wYNOXaRCizn5hh\r\n\tlx2Fb9fjzgmtSUM9C4pIILTT8SUaeGssxBh8+v3UaCPVIuDaKYsjAoReQY+3i2wHHQFUfpqam9B\r\n\tuiwugfGO6j/5dKzcTm6+Ypu2zT/euTw/eTw==",
+            "x-gm-gg": "X-Gm-Gg: AR+sD10k8ECauRm81leO7io7/98IFeIudTWZUNVEsr9hUvS4XoIVMHbtqqrK5aGvryf\r\n\ti0OSA7bHgJ5gVFV0IV14fdJC3dXIYDuz0Nx89iczaLl3PkTsdTBTlSZyim+G4Sp6NCQitLlJoA5\r\n\tTCGQTnEqPUV4C/d0jwJ/+3/SsoKH5dmb5shHisLdTocOLre5OGi79gACtS5mspos+ZCI6OyA481\r\n\tuy0HLj/4aPhwf+ymCzWHZ8nc/enoGbEUU/CSraJNDW1beRyPaB3aPbGRN5zykGjgVrTgag8JF8R\r\n\tRkiCReiVBqXhFndWV0mhIsN/j66z/WFapC3wM+E4zzccYw==",
+            "mime-version": "MIME-Version: 1.0",
+            "from": "From: Hanan Alhabbali <hananalhabbali2000@gmail.com>",
+            "date": "Date: Tue, 25 Aug 2026 18:39:06 +0300",
+            "x-gm-features": "X-Gm-Features: AcwNN1WKMact-I4Saqam3fSTSKge8_L90y4bc9-7DBNkiwXyMzTPA7-FKyHHu4k",
+            "message-id": "Message-ID: <CANzqOCaGLjmcR1Dk_rxf_REqojYs2mE4SEx7-9XYzN_JG-=sgA@mail.gmail.com>",
+            "subject": "Subject: Issue Logging into dashboard",
+            "to": "To: hnanalhabali@gmail.com",
+            "content-type": "Content-Type: multipart/alternative; boundary=\"000000000000ed714b0659e0e74d\""
+          },
+          "html": "<div dir=\"auto\">Hi team </div>\n",
+          "text": "Hi team\n",
+          "textAsHtml": "<p>Hi team</p>",
+          "subject": "Issue Logging into dashboard",
+          "date": "2026-08-25T15:39:06.000Z",
+          "to": {
+            "value": [
+              {
+                "address": "hnanalhabali@gmail.com",
+                "name": ""
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><a href=\"mailto:hnanalhabali@gmail.com\" class=\"mp_address_email\">hnanalhabali@gmail.com</a></span>",
+            "text": "hnanalhabali@gmail.com"
+          },
+          "from": {
+            "value": [
+              {
+                "address": "hananalhabbali2000@gmail.com",
+                "name": "Hanan Alhabbali"
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><span class=\"mp_address_name\">Hanan Alhabbali</span> &lt;<a href=\"mailto:hananalhabbali2000@gmail.com\" class=\"mp_address_email\">hananalhabbali2000@gmail.com</a>&gt;</span>",
+            "text": "\"Hanan Alhabbali\" <hananalhabbali2000@gmail.com>"
+          },
+          "messageId": "<CANzqOCaGLjmcR1Dk_rxf_REqojYs2mE4SEx7-9XYzN_JG-=sgA@mail.gmail.com>"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "Add label to message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "64bdc1e4-7649-4611-ad43-b9eb2536b561",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8fc958ca6e5c1ed12c7e6aab63a0ffbe51a63ebf55715e18f03c66d518bb2fc8"
+  },
+  "nodeGroups": [],
+  "id": "bwTIPKQnCTLSwTTZ",
+  "tags": []
+}
